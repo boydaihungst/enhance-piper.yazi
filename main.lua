@@ -56,7 +56,7 @@ function M:peek(job)
 			args = args .. " --cache-limit=" .. ya.quote(job.args.cache_limit)
 		end
 		ya.emit("plugin", {
-			"stdin-piper",
+			"enhance-piper",
 			args,
 		})
 		return piper_output
