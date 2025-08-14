@@ -1,4 +1,5 @@
 # enhance-piper.yazi
+
 Piper is plugin to run any shell command as a previewer.
 And this enhance-piper is a wrapper to cache piper commands's output to ram for better performance.
 Next time you scrolling or re-render previewer it won't run the shell command again.
@@ -6,6 +7,7 @@ Next time you scrolling or re-render previewer it won't run the shell command ag
 ## Installation
 
 > [!IMPORTANT]
+>
 > - Minimum version: yazi v25.5.31.
 > - Requires piper.yazi.
 
@@ -19,6 +21,9 @@ ya pkg add boydaihungst/enhance-piper
 Enhance-piper is a wrapper for piper.yazi previewer - you can pass any shell command to `enhance-piper` and it will use the command's output as the preview content, and the output of the command will be cached in ram for faster previewer scrolling or re-render previewer.
 
 It accepts a string parameter, which is the shell command to be executed, for example:
+
+> [!IMPORTANT]
+> For yazi nightly, replace `name` with `url`
 
 ```toml
 # ~/.config/yazi/yazi.toml
@@ -45,6 +50,9 @@ Available arguments for `enhance-piper` command itself:
 
 Here are some configuration examples:
 
+> [!IMPORTANT]
+> For yazi nightly, replace `name` with `url`
+
 ### Preview CSV with [`bat`](https://github.com/sharkdp/bat)
 
 ```toml
@@ -61,6 +69,18 @@ Note that certain distributions might use a different name for `bat`, like Debia
 [[plugin.prepend_previewers]]
 name = "*.md"
 run  = 'enhance-piper -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"'
+```
+
+you can also use `mime = "text/markdown"` instead of `name = "*.md"`
+
+Note that there's [a bug in Glow v2.0](https://github.com/charmbracelet/glow/issues/440#issuecomment-2307992634) that causes slight color differences between tty and non-tty environments.
+
+### Preview torrent with transmission-show and then highlight url with [`glow`](https://github.com/charmbracelet/glow)
+
+```toml
+[[plugin.prepend_previewers]]
+mime = "application/bittorrent"
+run  = 'enhance-piper -- transmission-show "$1" --no-header | CLICOLOR_FORCE=1 glow -w=$w -s=dark -'
 ```
 
 Note that there's [a bug in Glow v2.0](https://github.com/charmbracelet/glow/issues/440#issuecomment-2307992634) that causes slight color differences between tty and non-tty environments.
