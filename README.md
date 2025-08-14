@@ -1,4 +1,4 @@
-# stdin-piper.yazi
+# enhance-piper.yazi
 
 Pipe any shell command as a previewer, pre-slice for better performance.
 
@@ -6,42 +6,39 @@ Pipe any shell command as a previewer, pre-slice for better performance.
 
 > [!IMPORTANT]
 > Minimum version: yazi v25.5.31.
->
-> Requires awk:
-> Linux by default (GNU)
-> macOS (BSD version)
-> Windows (Git Bash/MSYS2 awk)
+> Requires piper.yazi
 
 ```sh
-ya pkg add boydaihungst/stdin-piper.yazi
+ya pkg add yazi-rs/plugins:piper
+ya pkg add boydaihungst/enhance-piper
 ```
 
 ## Usage
 
-Stdin-piper is a general-purpose previewer - you can pass any shell command to `stdin-piper` and it will use the command's output as the preview content.
+Enhance-piper is a wrapper for piper.yazi previewer - you can pass any shell command to `enhance-piper` and it will use the command's output as the preview content, and the output of the command will be cached in ram for faster previewer scrolling or re-render previewer.
 
-It accepts a string parameter, which is the shell command to be executed, the shell command should only read data from stdin (like `glow -` instead of `glow "$1"`), for example:
+It accepts a string parameter, which is the shell command to be executed, for example:
 
 ```toml
 # ~/.config/yazi/yazi.toml
 [[plugin.prepend_previewers]]
 name = "*"
-run  = 'stdin-piper -- "$HOME/.config/yazi/plugins/stdin-piper.yazi/assets/big_file_slice.sh" "$1" ${start} ${end} | CLICOLOR_FORCE=1 glow -w=$w -s=dark -'
-# On windows, use `$APPDATA` instead of `$HOME/.config`
-# run  = 'stdin-piper -- $APPDATA/yazi/plugins/stdin-piper.yazi/assets/big_file_slice.sh "$1" ${start} ${end} | CLICOLOR_FORCE=1 glow -w=$w -s=dark -'
+run  = 'enhance-piper -- echo "$1"'
 ```
 
-This will set `stdin-piper` as the previewer for all file types and use stdin `-` as the preview content.
+This will set `enhance-piper` as the previewer for all file types and use enhance `$1` (file path) as the preview content.
 
 ## Variables
 
-Available variables:
+Available variables for command behind `--`:
 
 - `$w`: the width of the preview area.
 - `$h`: the height of the preview area.
 - `$1`: the path to the file being previewed.
-- `$start`: start line number to be previewed.
-- `$end`: end line number to to be previewed.
+
+Available arguments for `enhance-piper` command itself:
+
+- `--cache-limit`: the maximum number of cached command's output, default is 100 entries.
 
 ## Examples
 
@@ -52,7 +49,7 @@ Here are some configuration examples:
 ```toml
 [[plugin.prepend_previewers]]
 name = "*.csv"
-run  = 'stdin-piper -- "$HOME/.config/yazi/plugins/stdin-piper.yazi/assets/big_file_slice.sh" "$1" ${start} ${end} | bat -p --color=always -'
+run  = 'enhance-piper -- bat -p --color=always "$1"'
 ```
 
 Note that certain distributions might use a different name for `bat`, like Debian and Ubuntu uses `batcat` instead, so please adjust accordingly.
@@ -62,7 +59,7 @@ Note that certain distributions might use a different name for `bat`, like Debia
 ```toml
 [[plugin.prepend_previewers]]
 name = "*.md"
-run  = 'stdin-piper -- "$HOME/.config/yazi/plugins/stdin-piper.yazi/assets/big_file_slice.sh" "$1" ${start} ${end} | CLICOLOR_FORCE=1 glow -w=$w -s=dark -'
+run  = 'enhance-piper -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"'
 ```
 
 Note that there's [a bug in Glow v2.0](https://github.com/charmbracelet/glow/issues/440#issuecomment-2307992634) that causes slight color differences between tty and non-tty environments.
