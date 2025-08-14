@@ -1,8 +1,8 @@
 # enhance-piper.yazi
 
-Piper is plugin to run any shell command as a previewer.
-And this enhance-piper is a wrapper to cache piper commands's output to ram for better performance.
-Next time you scrolling or re-render previewer it won't run the shell command again.
+`Piper.yazi` is a plugin that runs any shell command as a previewer.
+And this `enhance-piper.yazi` is a wrapper that caches `Piper` command outputs in RAM for better performance.
+When scrolling or re-rendering the previewer, the shell command will not run again.
 
 ## Installation
 
