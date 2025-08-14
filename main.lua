@@ -81,34 +81,12 @@ function M:peek(job)
 	if job.skip > 0 and i < job.skip + limit then
 		ya.emit("peek", { math.max(0, i - limit), only_if = job.file.url, upper_bound = true })
 	else
-		ya.preview_widget(job, M.format(job, outs))
+		ya.preview_widget(job, require("piper").format(job, outs))
 	end
 end
 
 function M:seek(job)
 	require("code"):seek(job)
-end
-
-function M.format(job, lines)
-	local format = job.args.format
-	if format ~= "url" then
-		local s = table.concat(lines, ""):gsub("\r", ""):gsub("\t", string.rep(" ", rt.preview.tab_size))
-		return ui.Text.parse(s):area(job.area)
-	end
-
-	for i = 1, #lines do
-		lines[i] = lines[i]:gsub("[\r\n]+$", "")
-
-		local icon = File({
-			url = Url(lines[i]),
-			cha = Cha({ kind = lines[i]:sub(-1) == "/" and 1 or 0 }),
-		}):icon()
-
-		if icon then
-			lines[i] = ui.Line({ ui.Span(" " .. icon.text .. " "):style(icon.style), lines[i] })
-		end
-	end
-	return ui.Text(lines):area(job.area)
 end
 
 function M:entry(job)
