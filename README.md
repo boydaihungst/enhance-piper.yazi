@@ -1,12 +1,13 @@
 # enhance-piper.yazi
-
-Pipe any shell command as a previewer, pre-slice for better performance.
+Piper is plugin to run any shell command as a previewer.
+And this enhance-piper is a wrapper to cache piper commands's output to ram for better performance.
+Next time you scrolling or re-render previewer it won't run the shell command again.
 
 ## Installation
 
 > [!IMPORTANT]
-> Minimum version: yazi v25.5.31.
-> Requires piper.yazi
+> - Minimum version: yazi v25.5.31.
+> - Requires piper.yazi.
 
 ```sh
 ya pkg add yazi-rs/plugins:piper
