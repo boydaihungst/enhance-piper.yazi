@@ -1,7 +1,8 @@
 --- @since 25.5.31
 
 local M = {}
-local LIMIT_CACHED_50_ITEMS = 100
+local MAX_ITEMS_IN_CACHE = 100
+local MAX_OUTPUT_LINES_TO_CACHE = 100000
 
 local STATE_KEY = {
 	CACHED_COMMAND_OUTPUT = "CACHED_COMMAND_OUTPUT",
@@ -42,7 +43,7 @@ function M:peek(job)
 	ya.sleep(math.max(0, rt.preview.image_delay / 1000 + start - os.clock()))
 
 	local output = {}
-	if not cached_ouput then
+	if not cached_ouput or cached_ouput.exceeded_max_line then
 		local piper_output = require("piper"):peek(job)
 		local args = "--cmd="
 			.. ya.quote(job.args[1])
@@ -55,13 +56,16 @@ function M:peek(job)
 		if job.args.cache_limit then
 			args = args .. " --cache-limit=" .. ya.quote(job.args.cache_limit)
 		end
+		if job.args.cache_max_lines then
+			args = args .. " --cache-max-lines=" .. ya.quote(job.args.cache_max_lines)
+		end
 		ya.emit("plugin", {
 			"enhance-piper",
 			args,
 		})
 		return piper_output
 	else
-		output = cached_ouput
+		output = cached_ouput.output
 	end
 
 	local limit = job.area.h
@@ -92,24 +96,24 @@ end
 function M:entry(job)
 	local cached_ouput, file_cache_name
 	local url = Url(job.args.url)
-	local cache_limit = job.args.cache_limit and tonumber(job.args.cache_limit) or LIMIT_CACHED_50_ITEMS
+	local cache_limit = job.args.cache_limit and tonumber(job.args.cache_limit) or MAX_ITEMS_IN_CACHE
+	local cache_max_lines = job.args.cache_max_lines and tonumber(job.args.cache_max_lines) or MAX_OUTPUT_LINES_TO_CACHE
 	local cha, err = fs.cha(url, true)
 	if err then
 		return
 	end
-	local file = File({
-		url = url,
-		cha = cha,
-	})
 	local file_cache = ya.file_cache({
-		file = file,
+		file = File({
+			url = url,
+			cha = cha,
+		}),
 		skip = 0,
 	})
 
 	if file_cache then
 		file_cache_name = tostring(file_cache)
 		cached_ouput = get_state(STATE_KEY.CACHED_COMMAND_OUTPUT, file_cache_name)
-		if not cached_ouput then
+		if not cached_ouput or not cached_ouput.exceeded_max_line then
 			local output = {}
 			local child, _ = Command("sh")
 				:arg({ "-c", job.args.cmd, "sh", job.args.url })
@@ -122,19 +126,40 @@ function M:entry(job)
 				return
 			end
 
+			local i = 0
 			while true do
 				local next, event = child:read_line()
 				if event == 1 then
+					child:start_kill()
 					return
 				elseif event ~= 0 then
+					child:start_kill()
 					break
 				end
+				i = i + 1
 				output[#output + 1] = next
+				if cache_max_lines and i >= cache_max_lines then
+					child:start_kill()
+					if file_cache then
+						set_state(
+							STATE_KEY.CACHED_COMMAND_OUTPUT,
+							file_cache_name,
+							{ output = "", exceeded_max_line = true },
+							cache_limit
+						)
+					end
+					return
+				end
 			end
 
 			-- Cache output to ram if possible
 			if file_cache then
-				set_state(STATE_KEY.CACHED_COMMAND_OUTPUT, file_cache_name, output, cache_limit)
+				set_state(
+					STATE_KEY.CACHED_COMMAND_OUTPUT,
+					file_cache_name,
+					{ output = output, exceeded_max_line = false },
+					cache_limit
+				)
 			end
 		end
 	end

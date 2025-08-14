@@ -44,7 +44,8 @@ Available variables for command behind `--`:
 
 Available arguments for `enhance-piper` command itself:
 
-- `--cache-limit`: the maximum number of cached command's output, default is 100 entries.
+- `--cache-limit=N`: the maximum number of cached command's output, default is N=100 entries.
+- `--cache-max-lines=N`: Only cache if number of command's output is less than N, default is N=100000 lines.
 
 ## Examples
 
