@@ -53,6 +53,8 @@ function M:peek(job)
 			.. ya.quote(job.area.w)
 			.. " --h="
 			.. ya.quote(job.area.h)
+			.. " --file-cache-name="
+			.. ya.quote(file_cache_name)
 		if job.args.cache_limit then
 			args = args .. " --cache-limit=" .. ya.quote(job.args.cache_limit)
 		end
@@ -94,28 +96,16 @@ function M:seek(job)
 end
 
 function M:entry(job)
-	local cached_ouput, file_cache_name
-	local url = Url(job.args.url)
+	local cached_ouput
+	local file_cache_name = job.args.file_cache_name
 	local cache_limit = job.args.cache_limit and tonumber(job.args.cache_limit) or MAX_ITEMS_IN_CACHE
 	local cache_max_lines = job.args.cache_max_lines and tonumber(job.args.cache_max_lines) or MAX_OUTPUT_LINES_TO_CACHE
-	local cha, err = fs.cha(url, true)
-	if err then
-		return
-	end
-	local file_cache = ya.file_cache({
-		file = File({
-			url = url,
-			cha = cha,
-		}),
-		skip = 0,
-	})
 
-	if file_cache then
-		file_cache_name = tostring(file_cache)
+	if file_cache_name then
 		cached_ouput = get_state(STATE_KEY.CACHED_COMMAND_OUTPUT, file_cache_name)
 		if not cached_ouput or not cached_ouput.exceeded_max_line then
 			local output = {}
-			local child, _ = Command("sh")
+			local child, child_err = Command("sh")
 				:arg({ "-c", job.args.cmd, "sh", job.args.url })
 				:env("w", job.args.w)
 				:env("h", job.args.h)
@@ -140,7 +130,7 @@ function M:entry(job)
 				output[#output + 1] = next
 				if cache_max_lines and i >= cache_max_lines then
 					child:start_kill()
-					if file_cache then
+					if file_cache_name then
 						set_state(
 							STATE_KEY.CACHED_COMMAND_OUTPUT,
 							file_cache_name,
@@ -153,7 +143,7 @@ function M:entry(job)
 			end
 
 			-- Cache output to ram if possible
-			if file_cache then
+			if file_cache_name then
 				set_state(
 					STATE_KEY.CACHED_COMMAND_OUTPUT,
 					file_cache_name,
