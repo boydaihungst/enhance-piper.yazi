@@ -71,7 +71,7 @@ Note that certain distributions might use a different name for `bat`, like Debia
 name = "*.md"
 run  = 'enhance-piper -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"'
 # OR with 1000 entries cache limit, and only cache file if number of lines is less than 10000
-run  = 'enhance-piper --cache-max-lines=10000 --cache-limit= 1000 -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"'
+run  = 'enhance-piper --cache-max-lines=10000 --cache-limit=1000 -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"'
 
 ```
 
